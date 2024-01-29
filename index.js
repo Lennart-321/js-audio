@@ -3,12 +3,12 @@ const playList = document.getElementById("playlist");
 const songs = [
     {
         //id: 0,
-        name: "Boys, Girls, Toys &Words - Modern_Pitch",
+        name: "Boys, Girls, Toys &Words - Modern Pitch",
         src: "assets/Boys,_Girls,_Toys_&_Words_-_Modern_Pitch.mp3",
     },
     {
         //id: 1,
-        name: "Not My Problem - All_My Friends Hate Me",
+        name: "Not My Problem - All My Friends Hate Me",
         src: "assets/Not_My_Problem_-_All_My_Friends_Hate_Me.mp3",
     },
     {
@@ -23,8 +23,12 @@ const songs = [
     },
     {
         //id: 4,
-        name: "Say_Goodbye_-_VITNE",
+        name: "Say Goodbye - VITNE",
         src: "assets/Say_Goodbye_-_VITNE.mp3",
+    },
+    {
+        name: "You Saved Science - Portal 2",
+        src: "assets/Portal2-23-You_Saved_Science.mp3",
     },
 ];
 

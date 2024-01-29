@@ -1,3 +1,42 @@
+body {
+    text-align: center;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+#player-container {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    /* justify-items: center; */
+    align-items: center;
+    /* width: 600px; */
+    background-color: #ddd;
+    width: auto;
+    margin: 5px;
+    text-align: start;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 5px #888;
+}
+
+#player {
+    margin: 5px;
+}
+
+h6 {
+    /* background-color: lightcyan; */
+    margin: 5px;
+}
+ul {
+    margin: 0 5px;
+    padding: 0;
+    /* background-color: lightcyan; */
+    list-style: none;
+    font-size: 0.8rem;
+}
+ul:hover {
+    cursor: pointer;
+}
+
 .selected {
     background-color: yellow;
 }
