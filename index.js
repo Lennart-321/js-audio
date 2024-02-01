@@ -1,6 +1,8 @@
 const player = document.getElementById("player");
 const playList = document.getElementById("playlist");
 const playButton = document.getElementById("play-pause");
+const nextButton = document.getElementById("next");
+const prevButton = document.getElementById("previous");
 const loopCheck = document.getElementById("looping");
 const shuffCheck = document.getElementById("shuffling");
 const songs = [
@@ -73,6 +75,7 @@ let isShuffling = () => shuffCheck.checked;
 function setCurrentSong(song) {
     player.src = audioSourceFromBase(song.src);
     currentSong = song;
+    console.log("currentSong.id:", currentSong.id);
 }
 
 function setSong(songLiElem, song) {
@@ -80,11 +83,13 @@ function setSong(songLiElem, song) {
     forEach(playList.children, li => li.classList.remove("selected"));
     songLiElem.classList.add("selected");
     setCurrentSong(song);
-    notPlayed.remove(song);
+    const npIx = notPlayed.indexOf(song);
+    if (npIx >= 0) notPlayed.splice(npIx, 1);
 }
 function playSong(songLiElem, song) {
     setSong(songLiElem, song);
     player.play();
+    playButton.innerText = "Pause";
 }
 
 function setSong2(song) {
@@ -100,6 +105,7 @@ function setSong2(song) {
 function playSong2(song) {
     setSong2(song);
     player.play();
+    playButton.innerText = "Pause";
 }
 
 function initSong() {
@@ -110,15 +116,14 @@ function initSong() {
 }
 
 function playNext() {
-    // let ix = playQueue.indexOf(currentSong);
-    // if (ix < 0) ix = 0;
-    // if (playQueue.length === 0) return;
-    let i;
+    console.log("isShuffling():", isShuffling(), "  isLooping():", isLooping());
+    console.log(notPlayed);
     if (!currentSong) {
         initSong();
-        playSong(currentSong);
+        playSong2(currentSong);
     } else if (isShuffling()) {
         let choises = notPlayed.length > 0 ? notPlayed : playQueue.slice();
+        let i;
         if ((i = choises.indexOf(currentSong)) >= 0) choises.splice(i, 1);
         let nxIx = Math.floor(Math.random() * choises.length);
         if (nxIx >= choises.length) {
@@ -127,21 +132,34 @@ function playNext() {
         }
         playSong2(choises[nxIx]);
     } else {
-        i = (playQueue.indexOf(currentSong) + 1) % playQueue.length;
-        playSong2(playQueue[i]);
+        let nextIx = -1;
+        const cIx = playQueue.indexOf(currentSong);
+        console.log("playQueue.indexOf(currentSong):", playQueue.indexOf(currentSong));
+        if (cIx < 0) {
+            nextIx = 0;
+        } else if (cIx === playQueue.length - 1) {
+            if (isLooping()) nextIx = 0;
+        } else {
+            nextIx = cIx + 1;
+        }
+
+        if (nextIx >= 0) {
+            playSong2(playQueue[nextIx]);
+        } else {
+            playButton.innerText = "Play";
+        }
     }
 }
 
 document.querySelectorAll(".song").forEach(s => s.addEventListener("click", e => playSong(s)));
-//player.addEventListener();
 
 const range = document.getElementById("range");
 const playedRange = document.getElementById("played-range");
 //console.log("range.width:", range.clientWidth);
 range.addEventListener("click", e => (player.currentTime = player.duration * (e.offsetX / range.clientWidth)));
 
-//const rangeWidthPercent = 70;
-// range.style.width = rangeWidthPercent + "%";
+player.addEventListener("ended", playNext);
+
 let lastPlayedSteps = 0;
 setInterval(() => {
     const ct = player.currentTime;
@@ -153,9 +171,6 @@ setInterval(() => {
     }
 }, 250);
 
-// console.log(songs);
-//setTimeout(() => console.log("range.style.width:", range.style.width), 1000);
-
 playButton.addEventListener("click", () => {
     if (playButton.innerText === "Play") {
         if (!currentSong) setSong2(songs[0]);
@@ -164,5 +179,13 @@ playButton.addEventListener("click", () => {
     } else {
         player.pause();
         playButton.innerText = "Play";
+    }
+});
+nextButton.addEventListener("click", playNext);
+prevButton.addEventListener("click", () => {
+    let ix = playQueue.indexOf(currentSong);
+    if (ix >= 0) {
+        if (--ix < 0) ix = playQueue.length - 1;
+        playSong2(playQueue[ix]);
     }
 });

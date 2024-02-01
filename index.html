@@ -11,10 +11,19 @@
             <h6>Playlist</h6>
             <ul id="playlist"></ul>
             <div id="range"><div id="played-range"></div></div>
-            <audio id="player" controls></audio>
-            <button id="play-pause">Play</button>
-            <input type="checkbox" id="looping" />
-            <input type="checkbox" id="shuffling" />
+            <audio id="player"></audio>
+            <div id="controls">
+                <button id="play-pause">Play</button>
+                &nbsp;
+                <span>&#x27B0;</span>
+                <input type="checkbox" id="looping" />
+                &nbsp;
+                <span>&#x1F500;</span>
+                <input type="checkbox" id="shuffling" />
+                &nbsp;
+                <button id="previous">&lt;</button>
+                <button id="next">&gt;</button>
+            </div>
         </div>
         <script src="index.js"></script>
     </body>
