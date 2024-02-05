@@ -5,6 +5,7 @@ const nextButton = document.getElementById("next");
 const prevButton = document.getElementById("previous");
 const loopCheck = document.getElementById("looping");
 const shuffCheck = document.getElementById("shuffling");
+const container = document.getElementById("player-container");
 const songs = [
     {
         id: 0,
@@ -89,6 +90,7 @@ function setSong(songLiElem, song) {
 function playSong(songLiElem, song) {
     setSong(songLiElem, song);
     player.play();
+    startRangeView();
     playButton.innerText = "Pause";
 }
 
@@ -105,6 +107,7 @@ function setSong2(song) {
 function playSong2(song) {
     setSong2(song);
     player.play();
+    startRangeView();
     playButton.innerText = "Pause";
 }
 
@@ -128,6 +131,7 @@ function playNext() {
         let nxIx = Math.floor(Math.random() * choises.length);
         if (nxIx >= choises.length) {
             console.log("ERROR new shuffling song:", nxIx, choises);
+            stopRangeView();
             return;
         }
         playSong2(choises[nxIx]);
@@ -147,6 +151,7 @@ function playNext() {
             playSong2(playQueue[nextIx]);
         } else {
             playButton.innerText = "Play";
+            stopRangeView();
         }
     }
 }
@@ -155,30 +160,101 @@ document.querySelectorAll(".song").forEach(s => s.addEventListener("click", e =>
 
 const range = document.getElementById("range");
 const playedRange = document.getElementById("played-range");
-//console.log("range.width:", range.clientWidth);
-range.addEventListener("click", e => (player.currentTime = player.duration * (e.offsetX / range.clientWidth)));
+let dragRangeStatus = 0;
+
+//Clink on range viewer
+range.addEventListener("click", e => {
+    console.log("click", e.offsetX);
+    if (dragRangeStatus === 0) player.currentTime = player.duration * (e.offsetX / range.clientWidth);
+});
+
+// //Drag range viewer
+range.addEventListener("mousedown", e => {
+    console.log("mousedown", e.offsetX);
+    if (Math.abs(e.offsetX - playedRange.clientWidth) <= 4) {
+        console.log("Start drag", e.offsetX);
+        dragRangeStatus = 1;
+        stopRangeView();
+        container.addEventListener("mousemove", dragEventListner);
+        e.preventDefault();
+    }
+});
+
+function getBodyOffset(elem, offsetX) {
+    if (elem.offsetParent === document.body) return elem.offsetLeft + offsetX;
+    return getBodyOffset(elem.offsetParent, elem.offsetLeft + offsetX);
+}
+console.log(range);
+console.log(range.offsetParent, range.offsetLeft);
+console.log(range.offsetParent.offsetParent, range.offsetParent.offsetLeft);
+const rangeBaseOffset = () => getBodyOffset(range, 0);
+function dragEventListner(e) {
+    if (dragRangeStatus === 0) {
+        container.removeEventListener("mousemove", dragEventListner);
+        return;
+    }
+    let baseOffset = getBodyOffset(e.target, e.offsetX);
+    let rangeOffset = Math.max(0, Math.min(baseOffset - rangeBaseOffset(), range.clientWidth));
+    console.log("drag:", baseOffset, rangeOffset);
+    playedRange.style.width = rangeOffset + "px";
+}
+container.addEventListener("mouseup", e => {
+    if (dragRangeStatus === 1) {
+        dragRangeStatus = 0;
+        startRangeView();
+        let containerOffset = getBodyOffset(e.target, e.offsetX);
+        let rangeOffset = Math.max(0, Math.min(containerOffset - rangeBaseOffset(), range.clientWidth));
+        console.log(player.duration, rangeOffset, range.clientWidth);
+        console.log("player.currentTime = ", player.duration * (rangeOffset / range.clientWidth));
+        player.currentTime = player.duration * (rangeOffset / range.clientWidth);
+    }
+});
+container.addEventListener("mouseleave", () => {
+    if (dragRangeStatus === 1) startRangeView();
+    dragRangeStatus = 0;
+});
+
+//Range viewer
+let rangeInterval = -1;
+let lastPlayedSteps;
+function startRangeView() {
+    console.log("Start Range View:", player.ended, player.paused, player.duration, player.currentTime);
+    // if (player.ended || player.paused || !player.duration) {
+    //     //if (rangeInterval != -1) stopRangeView();
+    //     return;
+    // } else
+    if (rangeInterval != -1) return;
+    lastPlayedSteps = 0;
+    rangeInterval = setInterval(() => {
+        console.log("Interval Timeout");
+        const ct = player.currentTime;
+        const playedSteps = Math.round(ct * 4);
+        if (lastPlayedSteps != playedSteps) {
+            lastPlayedSteps = playedSteps;
+            const fraction = ct / player.duration;
+            playedRange.style.width = fraction ? fraction * range.clientWidth + "px" : "0";
+        }
+    }, 250);
+    console.log(rangeInterval, " = setInterval(...)");
+}
+function stopRangeView() {
+    console.log(`clearInterval(${rangeInterval})`);
+    if (rangeInterval != -1) clearInterval(rangeInterval);
+    rangeInterval = -1;
+}
 
 player.addEventListener("ended", playNext);
-
-let lastPlayedSteps = 0;
-setInterval(() => {
-    const ct = player.currentTime;
-    const playedSteps = Math.round(ct * 4);
-    if (lastPlayedSteps != playedSteps) {
-        lastPlayedSteps = playedSteps;
-        const fraction = ct / player.duration;
-        playedRange.style.width = fraction ? fraction * range.clientWidth + "px" : "0";
-    }
-}, 250);
 
 playButton.addEventListener("click", () => {
     if (playButton.innerText === "Play") {
         if (!currentSong) setSong2(songs[0]);
         player.play();
         playButton.innerText = "Pause";
+        startRangeView();
     } else {
         player.pause();
         playButton.innerText = "Play";
+        stopRangeView();
     }
 });
 nextButton.addEventListener("click", playNext);
